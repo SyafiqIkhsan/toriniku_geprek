@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:toriniku_geprek/dashboard.dart';
+import 'package:toriniku_geprek/views/screens/dashboard.dart';
 
 void main() {
   runApp(const MainApp());
