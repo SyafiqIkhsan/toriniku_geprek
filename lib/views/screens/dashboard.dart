@@ -48,7 +48,7 @@ class DashboardPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Selamat datang kembali!',
+                        'Wilujeng Sumping, Juragan!',
                         style: TextStyle(
                           color: Color(0xffffe0cc),
                           fontSize: 16,
@@ -71,6 +71,22 @@ class DashboardPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildFinancialInfo(
+                                    label: 'DD/MM/YY',
+                                    value: '12/12/12',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              height: 1,
+                              color: Colors.white.withOpacity(0.2),
+                            ),
+                            const SizedBox(height: 8),
                             Text(
                               'LABA HARI INI',
                               style: TextStyle(
@@ -82,40 +98,12 @@ class DashboardPage extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Rp 370.000',
+                              'Rp 370.000.000',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            Container(
-                              height: 1,
-                              color: Colors.white.withOpacity(0.2),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildFinancialInfo(
-                                    label: 'DD/MM/YY',
-                                    value: '12/12/12',
-                                  ),
-                                ),
-                                Container(
-                                  height: 35,
-                                  width: 1,
-                                  color: Colors.white.withOpacity(0.3),
-                                ),
-                                Expanded(
-                                  child: _buildFinancialInfo(
-                                    label: 'Pengeluaran',
-                                    value: 'Rp 400.000',
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
@@ -130,7 +118,7 @@ class DashboardPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: [
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 15),
                         _buildMenuCard(
                           icon: Icons.shopping_bag_outlined,
                           iconColor: const Color(0xff1a73e8),
@@ -146,30 +134,6 @@ class DashboardPage extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-
-      // Bottom Navigation Bar tetap sama
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xffff6600),
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Pesanan',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'Menu',
           ),
         ],
       ),
