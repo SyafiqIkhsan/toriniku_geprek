@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:toriniku_geprek/views/screens/dashboard.dart';
 import 'package:toriniku_geprek/views/screens/pesanan.dart';
 import 'package:toriniku_geprek/views/screens/menu.dart';
@@ -12,8 +13,14 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MainScreen(),
+    return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(
+          Theme.of(context).textTheme,
+        ),
+      ),
+      home: const MainScreen(),
     );
   }
 }
