@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'TambahPesananPage.dart';
 
 class PesananPage extends StatelessWidget {
   const PesananPage({super.key});
@@ -47,13 +48,10 @@ class PesananPage extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Konten Utama
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Title
+              children: [                
                 const Padding(
                   padding: EdgeInsets.all(24.0),
                   child: Column(
@@ -168,6 +166,17 @@ class PesananPage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const TambahPesananPage()),
+          );
+        },
+        backgroundColor: const Color(0xffff6600),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }

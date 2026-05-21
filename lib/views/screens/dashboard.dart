@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'TambahPesananPage.dart'; 
 
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+  final VoidCallback? onTapPesanan;
+  const DashboardPage({super.key, this.onTapPesanan});
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +114,6 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
 
-                // Menggunakan Expanded agar mengambil sisa tinggi layar bawah
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -123,9 +124,10 @@ class DashboardPage extends StatelessWidget {
                           icon: Icons.shopping_bag_outlined,
                           iconColor: const Color(0xff1a73e8),
                           iconBgColor: const Color(0xffe8f0fe),
-                          title: 'Order Aktif',
+                          title: 'Pesanan Aktif',
                           value: '3',
                           subtitle: '3 menunggu',
+                          onTap: onTapPesanan,
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -137,10 +139,22 @@ class DashboardPage extends StatelessWidget {
           ),
         ],
       ),
+      
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const TambahPesananPage()),
+          );
+        },
+        backgroundColor: const Color(0xffff6600),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
     );
   }
 
-  // Helper _buildFinancialInfo dan _buildMenuCard tetap sama seperti kode sebelumnya
+  // Helper _buildFinancialInfo
   Widget _buildFinancialInfo({
     required String label,
     required String value,
@@ -172,6 +186,7 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
+  // Helper _buildMenuCard (Memperbaiki Colors.black.withOpacity untuk teks subtitle)
   Widget _buildMenuCard({
     required IconData icon,
     required Color iconColor,
@@ -179,12 +194,12 @@ class DashboardPage extends StatelessWidget {
     required String title,
     required String value,
     required String subtitle,
+    VoidCallback? onTap,
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 187, 177, 177),
+        color: const Color.fromARGB(255, 235, 232, 232), // sedikit dibuat lebih cerah dari abu-abu mati
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -194,46 +209,62 @@ class DashboardPage extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          splashColor: Colors.black.withOpacity(0.05), // warna riak air halus
+          highlightColor: Colors.black.withOpacity(0.02), // warna sorot halus saat ditekan lama
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 24),
+                ),
+                const SizedBox(height: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xff5f6368),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.black.withOpacity(0.38), // Diperbaiki agar aman dari error type typo
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            child: Icon(icon, color: iconColor, size: 24),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xff5f6368),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(color: Colors.black38, fontSize: 12),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
