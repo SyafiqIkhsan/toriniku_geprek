@@ -1,30 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { usePOS } from "../context/POSContext";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../lib/supabase/client";
 
-export default function LoginScreen() {
-  const { login } = usePOS();
-  const [username, setUsername] = useState("");
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
-      setError("Username dan password harus diisi");
+    if (!email.trim() || !password.trim()) {
+      setError("Email dan password harus diisi");
       return;
     }
     setLoading(true);
     setError("");
-    // Small delay for UX feel
-    await new Promise((r) => setTimeout(r, 600));
-    const ok = login(username.trim(), password.trim());
-    if (!ok) {
-      setError("Username atau password salah");
+
+    try {
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      if (signInError) {
+        setError(signInError.message || "Email atau password salah");
+      } else {
+        router.push("/beranda");
+        router.refresh();
+      }
+    } catch (err: any) {
+      setError("Terjadi kesalahan sistem. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -35,7 +48,6 @@ export default function LoginScreen() {
     <div className="min-h-screen flex">
       {/* ── Left panel: branding (desktop only) ── */}
       <div className="hidden lg:flex lg:w-1/2 bg-orange-500 flex-col justify-between p-12 relative overflow-hidden">
-        {/* Decorative blobs */}
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-orange-400 rounded-full opacity-50" />
         <div className="absolute top-1/3 -right-16 w-56 h-56 bg-orange-600 rounded-full opacity-30" />
         <div className="absolute -bottom-16 left-1/4 w-64 h-64 bg-orange-300 rounded-full opacity-40" />
@@ -61,8 +73,6 @@ export default function LoginScreen() {
           <p className="text-orange-100 text-base leading-relaxed max-w-sm">
             Pantau pesanan, kelola menu, dan lacak keuntungan harianmu semua dalam satu tempat.
           </p>
-
-          {/* Feature pills */}
           <div className="flex flex-wrap gap-2 mt-8">
             {["📦 Manajemen Pesanan", "🍽️ Kelola Menu", "📊 Laporan Laba", "⚡ Real-time"].map((f) => (
               <span key={f} className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/20">
@@ -72,7 +82,6 @@ export default function LoginScreen() {
           </div>
         </div>
 
-        {/* Bottom note */}
         <div className="relative z-10">
           <p className="text-orange-200 text-xs">© 2026 Toriniku Geprek · All rights reserved</p>
         </div>
@@ -94,34 +103,32 @@ export default function LoginScreen() {
         </div>
 
         <div className="w-full max-w-md">
-          {/* Heading */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900">Selamat datang! 👋</h1>
             <p className="text-gray-500 text-sm mt-1">Masuk ke akun Anda untuk melanjutkan</p>
           </div>
 
-          {/* Form card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
-            {/* Username */}
+            {/* Email */}
             <div className="mb-5">
-              <label htmlFor="input-username" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Username
+              <label htmlFor="input-email" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Email
               </label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline strokeLinecap="round" strokeLinejoin="round" points="22,6 12,13 2,6" />
                   </svg>
                 </div>
                 <input
-                  id="input-username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => { setUsername(e.target.value); setError(""); }}
+                  id="input-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Masukkan username"
-                  autoComplete="username"
+                  placeholder="contoh@email.com"
+                  autoComplete="email"
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 bg-gray-50/50"
                 />
               </div>
@@ -204,16 +211,15 @@ export default function LoginScreen() {
             </button>
           </div>
 
-          {/* Demo credentials hint */}
+          {/* Info note */}
           <div className="mt-5 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex gap-3 items-start">
             <svg className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
             </svg>
             <div className="text-xs text-blue-700">
-              <p className="font-semibold mb-0.5">Demo credentials</p>
-              <p>Username: <span className="font-mono font-bold">admin</span></p>
-              <p>Password: <span className="font-mono font-bold">admin123</span></p>
+              <p className="font-semibold mb-0.5">Login menggunakan akun Supabase</p>
+              <p>Buat akun di <span className="font-mono font-bold">Supabase Dashboard → Authentication → Users</span></p>
             </div>
           </div>
         </div>

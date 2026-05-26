@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { usePOS } from "../context/POSContext";
 
 export default function TambahMenuScreen() {
-  const { addMenuItem, setActiveScreen, setActiveTab } = usePOS();
+  const { addMenuItem } = usePOS();
+  const router = useRouter();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState<"food" | "drink">("food");
@@ -18,7 +20,7 @@ export default function TambahMenuScreen() {
     if (!parsedPrice || parsedPrice <= 0) { setError("Harga harus lebih dari 0"); return; }
     addMenuItem({ name: name.trim(), price: parsedPrice, category, status: "Ready", note: note.trim() || undefined });
     setSuccess(true);
-    setTimeout(() => { setActiveTab("menu"); setActiveScreen("menu"); }, 800);
+    setTimeout(() => { router.push("/menu"); router.refresh(); }, 800);
   };
 
   const formatPrice = (val: string) => {
@@ -26,7 +28,7 @@ export default function TambahMenuScreen() {
     return digits ? parseInt(digits).toLocaleString("id-ID") : "";
   };
 
-  const goBack = () => { setActiveTab("menu"); setActiveScreen("menu"); };
+  const goBack = () => { router.push("/menu"); };
 
   return (
     <div className="flex flex-col min-h-full">

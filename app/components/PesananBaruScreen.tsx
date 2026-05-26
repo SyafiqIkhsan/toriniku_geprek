@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { usePOS } from "../context/POSContext";
 
 export default function PesananBaruScreen() {
-  const { addOrder, setActiveScreen, setActiveTab } = usePOS();
+  const { addOrder } = usePOS();
+  const router = useRouter();
   const [customerName, setCustomerName] = useState("");
   const [items, setItems] = useState("");
   const [notes, setNotes] = useState("");
@@ -31,18 +33,16 @@ export default function PesananBaruScreen() {
       items: items.trim(),
       notes: notes.trim() || undefined,
       total: parseInt(total.replace(/\D/g, ""), 10) || 0,
-      status: "Baru",
     });
     setSuccess(true);
     setTimeout(() => {
-      setActiveTab("pesanan");
-      setActiveScreen("pesanan");
+      router.push("/pesanan");
+      router.refresh();
     }, 800);
   };
 
   const goBack = () => {
-    setActiveTab("pesanan");
-    setActiveScreen("pesanan");
+    router.push("/pesanan");
   };
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { usePOS, MenuItem } from "../context/POSContext";
 
 function MenuItemCard({ item }: { item: MenuItem }) {
@@ -60,7 +61,8 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 }
 
 export default function MenuScreen() {
-  const { menuItems, setActiveScreen } = usePOS();
+  const { menuItems, menuLoading } = usePOS();
+  const router = useRouter();
   const activeCount = menuItems.filter((m) => m.status === "Ready").length;
 
   return (
@@ -75,7 +77,7 @@ export default function MenuScreen() {
           </div>
           <button
             id="btn-tambah-menu"
-            onClick={() => setActiveScreen("tambah-menu")}
+            onClick={() => router.push("/menu/tambah")}
             className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold text-sm px-4 py-2 rounded-xl backdrop-blur-sm active:scale-95 cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -88,7 +90,20 @@ export default function MenuScreen() {
 
       {/* Menu list */}
       <div className="flex-1 px-4 md:px-8 py-4 pb-24 md:pb-8 bg-gray-50">
-        {menuItems.length === 0 ? (
+        {menuLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm animate-pulse">
+                <div className="w-12 h-12 bg-gray-200 rounded-xl flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+                  <div className="h-3 bg-gray-200 rounded w-1/3" />
+                </div>
+                <div className="h-6 bg-gray-200 rounded-full w-16" />
+              </div>
+            ))}
+          </div>
+        ) : menuItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400">
             <svg className="w-16 h-16 mb-3 opacity-30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 2h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H3zM7 13H3M12 2v20" />
@@ -96,7 +111,7 @@ export default function MenuScreen() {
             <p className="text-sm font-medium">Belum ada menu</p>
             <button
               id="btn-add-first-menu"
-              onClick={() => setActiveScreen("tambah-menu")}
+              onClick={() => router.push("/menu/tambah")}
               className="mt-3 bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-orange-600 active:scale-95 cursor-pointer"
             >
               Tambah Menu

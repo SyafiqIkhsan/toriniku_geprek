@@ -1,6 +1,19 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import { Session } from "@supabase/supabase-js";
+import { createClient } from "../../lib/supabase/client";
+
+const supabase = createClient();
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type OrderStatus = "Baru" | "Diproses" | "Selesai" | "Dibatalkan";
 
@@ -22,141 +35,165 @@ export interface Order {
   total: number;
   time: string;
   status: OrderStatus;
-  createdAt: Date;
+  createdAt: string;
 }
 
 interface POSContextType {
-  isAuthenticated: boolean;
-  login: (username: string, password: string) => boolean;
-  logout: () => void;
-  activeTab: "beranda" | "pesanan" | "menu";
-  setActiveTab: (tab: "beranda" | "pesanan" | "menu") => void;
-  activeScreen: string;
-  setActiveScreen: (screen: string) => void;
+  session: Session | null;
   orders: Order[];
-  addOrder: (order: Omit<Order, "id" | "orderNumber" | "time" | "createdAt">) => void;
-  updateOrderStatus: (id: string, status: OrderStatus) => void;
+  ordersLoading: boolean;
+  addOrder: (order: Pick<Order, "customerName" | "items" | "notes" | "total">) => Promise<void>;
+  updateOrderStatus: (id: string, status: OrderStatus) => Promise<void>;
   menuItems: MenuItem[];
-  addMenuItem: (item: Omit<MenuItem, "id">) => void;
-  updateMenuItemStatus: (id: string, status: "Ready" | "Habis") => void;
-  deleteMenuItem: (id: string) => void;
+  menuLoading: boolean;
+  addMenuItem: (item: Omit<MenuItem, "id">) => Promise<void>;
+  updateMenuItemStatus: (id: string, status: "Ready" | "Habis") => Promise<void>;
+  deleteMenuItem: (id: string) => Promise<void>;
 }
+
+// ─── Context ──────────────────────────────────────────────────────────────────
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
 
-const initialMenuItems: MenuItem[] = [
-  { id: "m1", name: "Ayam Geprek", price: 18000, category: "food", status: "Ready" },
-  { id: "m2", name: "Es Teh Manis", price: 5000, category: "drink", status: "Habis" },
-  { id: "m3", name: "Jeruk Peras (Es/Hangat)", price: 7000, category: "drink", status: "Habis" },
-  { id: "m4", name: "Paket Ayam Geprek", price: 22000, category: "food", status: "Ready" },
-];
-
-const initialOrders: Order[] = [
-  {
-    id: "o1",
-    orderNumber: "TN-001",
-    customerName: "Meja 05",
-    items: "2x Ayam Geprek, 1x Es Teh",
-    total: 500000,
-    time: "14:20",
-    status: "Baru",
-    createdAt: new Date(),
-  },
-  {
-    id: "o2",
-    orderNumber: "TN-002",
-    customerName: "Meja 03",
-    items: "1x Paket Ayam Geprek, 1x Jeruk Hangat",
-    total: 320000,
-    time: "13:45",
-    status: "Diproses",
-    createdAt: new Date(),
-  },
-  {
-    id: "o3",
-    orderNumber: "TN-003",
-    customerName: "Andi",
-    items: "5x Ayam Geprek",
-    total: 900000,
-    time: "12:05",
-    status: "Selesai",
-    createdAt: new Date(),
-  },
-];
-
-let orderCounter = 4;
-let menuCounter = 5;
+// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function POSProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<"beranda" | "pesanan" | "menu">("beranda");
-  const [activeScreen, setActiveScreen] = useState("beranda");
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [session, setSession] = useState<Session | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuLoading, setMenuLoading] = useState(true);
 
-  const addOrder = (order: Omit<Order, "id" | "orderNumber" | "time" | "createdAt">) => {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-    const newOrder: Order = {
-      ...order,
-      id: `o${orderCounter}`,
-      orderNumber: `TN-${String(orderCounter).padStart(3, "0")}`,
-      time: `${hours}:${minutes}`,
-      createdAt: now,
-    };
-    orderCounter++;
-    setOrders((prev) => [newOrder, ...prev]);
-  };
+  // ── Session ─────────────────────────────────────────────────────────────────
 
-  const updateOrderStatus = (id: string, status: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status } : o))
-    );
-  };
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-  const addMenuItem = (item: Omit<MenuItem, "id">) => {
-    const newItem: MenuItem = { ...item, id: `m${menuCounter}` };
-    menuCounter++;
-    setMenuItems((prev) => [...prev, newItem]);
-  };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSession(session);
+    });
 
-  const updateMenuItemStatus = (id: string, status: "Ready" | "Habis") => {
-    setMenuItems((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, status } : m))
-    );
-  };
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const deleteMenuItem = (id: string) => {
-    setMenuItems((prev) => prev.filter((m) => m.id !== id));
-  };
+  // ── Fetch data ───────────────────────────────────────────────────────────────
 
-  const login = (username: string, password: string): boolean => {
-    if (username === "admin" && password === "admin123") {
-      setIsAuthenticated(true);
-      return true;
+  const fetchOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setOrders(
+        data.map((row) => ({
+          id: row.id,
+          orderNumber: row.order_number,
+          customerName: row.customer_name,
+          items: row.items,
+          notes: row.notes ?? undefined,
+          total: row.total,
+          time: row.time,
+          status: row.status as OrderStatus,
+          createdAt: row.created_at,
+        }))
+      );
     }
-    return false;
+    setOrdersLoading(false);
+  }, []);
+
+  const fetchMenuItems = useCallback(async () => {
+    setMenuLoading(true);
+    const { data, error } = await supabase
+      .from("menu_items")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setMenuItems(
+        data.map((row) => ({
+          id: row.id,
+          name: row.name,
+          price: row.price,
+          category: row.category as "food" | "drink",
+          status: row.status as "Ready" | "Habis",
+          note: row.note ?? undefined,
+        }))
+      );
+    }
+    setMenuLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchOrders();
+      fetchMenuItems();
+    }
+  }, [session, fetchOrders, fetchMenuItems]);
+
+  // ── Order mutations ──────────────────────────────────────────────────────────
+
+  const addOrder = async (order: Pick<Order, "customerName" | "items" | "notes" | "total">) => {
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+    const { error } = await supabase.from("orders").insert({
+      customer_name: order.customerName,
+      items: order.items,
+      notes: order.notes ?? null,
+      total: order.total,
+      time,
+      status: "Baru",
+    });
+
+    if (!error) await fetchOrders();
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
+  const updateOrderStatus = async (id: string, status: OrderStatus) => {
+    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+    if (!error) {
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+    }
+  };
+
+  // ── Menu mutations ───────────────────────────────────────────────────────────
+
+  const addMenuItem = async (item: Omit<MenuItem, "id">) => {
+    const { error } = await supabase.from("menu_items").insert({
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      status: item.status,
+      note: item.note ?? null,
+    });
+    if (!error) await fetchMenuItems();
+  };
+
+  const updateMenuItemStatus = async (id: string, status: "Ready" | "Habis") => {
+    const { error } = await supabase.from("menu_items").update({ status }).eq("id", id);
+    if (!error) {
+      setMenuItems((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+    }
+  };
+
+  const deleteMenuItem = async (id: string) => {
+    const { error } = await supabase.from("menu_items").delete().eq("id", id);
+    if (!error) setMenuItems((prev) => prev.filter((m) => m.id !== id));
   };
 
   return (
     <POSContext.Provider
       value={{
-        isAuthenticated,
-        login,
-        logout,
-        activeTab,
-        setActiveTab,
-        activeScreen,
-        setActiveScreen,
+        session,
         orders,
+        ordersLoading,
         addOrder,
         updateOrderStatus,
         menuItems,
+        menuLoading,
         addMenuItem,
         updateMenuItemStatus,
         deleteMenuItem,

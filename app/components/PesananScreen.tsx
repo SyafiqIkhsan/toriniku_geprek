@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { usePOS, Order, OrderStatus } from "../context/POSContext";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -33,18 +34,13 @@ function OrderCard({ order }: { order: Order }) {
       </div>
 
       {showMenu && (
-        <div
-          className="absolute right-4 top-12 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 min-w-36"
-          onMouseLeave={() => setShowMenu(false)}
-        >
+        <div className="absolute right-4 top-12 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 min-w-36" onMouseLeave={() => setShowMenu(false)}>
           {statusOptions.map((s) => (
             <button
               key={s}
               id={`status-option-${order.id}-${s}`}
               onClick={() => { updateOrderStatus(order.id, s); setShowMenu(false); }}
-              className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 cursor-pointer ${
-                order.status === s ? "text-orange-500" : "text-gray-700"
-              }`}
+              className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 cursor-pointer ${order.status === s ? "text-orange-500" : "text-gray-700"}`}
             >
               {s}
             </button>
@@ -63,12 +59,13 @@ function OrderCard({ order }: { order: Order }) {
 }
 
 export default function PesananScreen() {
-  const { orders, setActiveScreen } = usePOS();
+  const { orders, ordersLoading } = usePOS();
+  const router = useRouter();
   const [filter, setFilter] = useState<"semua" | OrderStatus>("semua");
 
   const filtered = filter === "semua" ? orders : orders.filter((o) => o.status === filter);
 
-  const filters: { id: string; label: string }[] = [
+  const filters = [
     { id: "semua", label: "Semua" },
     { id: "Baru", label: "Baru" },
     { id: "Diproses", label: "Diproses" },
@@ -86,10 +83,9 @@ export default function PesananScreen() {
             <h1 className="text-white text-2xl font-bold">Pesanan</h1>
             <p className="text-orange-100 text-sm mt-0.5">Pantau semua orderan masuk di sini</p>
           </div>
-          {/* Desktop new order button */}
           <button
             id="btn-new-order-header"
-            onClick={() => setActiveScreen("pesanan-baru")}
+            onClick={() => router.push("/pesanan/baru")}
             className="hidden md:flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold text-sm px-4 py-2 rounded-xl backdrop-blur-sm active:scale-95 cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -118,7 +114,23 @@ export default function PesananScreen() {
 
       {/* Orders grid */}
       <div className="flex-1 px-4 md:px-8 py-4 pb-24 md:pb-8 bg-gray-50">
-        {filtered.length === 0 ? (
+        {ordersLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl p-4 shadow-sm space-y-2 animate-pulse">
+                <div className="flex justify-between">
+                  <div className="h-4 bg-gray-200 rounded w-24" />
+                  <div className="h-5 bg-gray-200 rounded-full w-20" />
+                </div>
+                <div className="h-3 bg-gray-200 rounded w-3/4" />
+                <div className="flex justify-between pt-1">
+                  <div className="h-3 bg-gray-200 rounded w-16" />
+                  <div className="h-3 bg-gray-200 rounded w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400">
             <svg className="w-16 h-16 mb-3 opacity-30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
@@ -136,7 +148,7 @@ export default function PesananScreen() {
       {/* FAB — mobile only */}
       <button
         id="fab-new-order"
-        onClick={() => setActiveScreen("pesanan-baru")}
+        onClick={() => router.push("/pesanan/baru")}
         className="md:hidden fixed bottom-20 right-5 z-40 w-14 h-14 bg-orange-500 rounded-full shadow-lg flex items-center justify-center hover:bg-orange-600 active:scale-95 cursor-pointer"
       >
         <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
