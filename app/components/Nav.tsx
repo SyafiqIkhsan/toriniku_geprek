@@ -64,7 +64,7 @@ export function BottomNav() {
 
 /** Shown only on desktop (left sidebar) */
 export function Sidebar() {
-  const { activeTab, setActiveTab, setActiveScreen } = usePOS();
+  const { activeTab, setActiveTab, setActiveScreen, logout } = usePOS();
 
   return (
     <aside className="hidden md:flex flex-col w-60 bg-white border-r border-gray-100 h-screen sticky top-0 flex-shrink-0 shadow-sm">
@@ -107,7 +107,19 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-100">
+      <div className="px-4 py-4 border-t border-gray-100 flex flex-col gap-2">
+        <button
+          id="btn-logout-sidebar"
+          onClick={logout}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 cursor-pointer"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline strokeLinecap="round" strokeLinejoin="round" points="16 17 21 12 16 7" />
+            <line x1="21" x2="9" y1="12" y2="12" strokeLinecap="round" />
+          </svg>
+          Keluar
+        </button>
         <p className="text-xs text-gray-400 text-center">v1.0.0 · Toriniku Geprek</p>
       </div>
     </aside>

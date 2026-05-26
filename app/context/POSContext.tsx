@@ -26,6 +26,9 @@ export interface Order {
 }
 
 interface POSContextType {
+  isAuthenticated: boolean;
+  login: (username: string, password: string) => boolean;
+  logout: () => void;
   activeTab: "beranda" | "pesanan" | "menu";
   setActiveTab: (tab: "beranda" | "pesanan" | "menu") => void;
   activeScreen: string;
@@ -85,6 +88,7 @@ let orderCounter = 4;
 let menuCounter = 5;
 
 export function POSProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<"beranda" | "pesanan" | "menu">("beranda");
   const [activeScreen, setActiveScreen] = useState("beranda");
   const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -127,9 +131,24 @@ export function POSProvider({ children }: { children: ReactNode }) {
     setMenuItems((prev) => prev.filter((m) => m.id !== id));
   };
 
+  const login = (username: string, password: string): boolean => {
+    if (username === "admin" && password === "admin123") {
+      setIsAuthenticated(true);
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+  };
+
   return (
     <POSContext.Provider
       value={{
+        isAuthenticated,
+        login,
+        logout,
         activeTab,
         setActiveTab,
         activeScreen,
