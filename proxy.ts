@@ -36,7 +36,8 @@ export async function proxy(request: NextRequest) {
     pathname === "/" ||
     pathname.startsWith("/beranda") ||
     pathname.startsWith("/pesanan") ||
-    pathname.startsWith("/menu");
+    pathname.startsWith("/menu") ||
+    pathname.startsWith("/diskon");
 
   // Not authenticated → redirect to /login
   if (!user && isProtectedRoute) {

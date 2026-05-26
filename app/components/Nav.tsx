@@ -39,6 +39,16 @@ const tabs = [
       </svg>
     ),
   },
+  {
+    id: "diskon",
+    href: "/diskon",
+    label: "Diskon",
+    icon: (active: boolean) => (
+      <svg className={`w-5 h-5 ${active ? "text-orange-500" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 14.5 14.5 9.5M9.5 9.5h.01M14.5 14.5h.01M16.5 18.5a6 6 0 0 0 6-6v-7a2 2 0 0 0-2-2h-7a6 6 0 0 0-6 6v7a2 2 0 0 0 2 2h7z" />
+      </svg>
+    ),
+  },
 ];
 
 /** Bottom nav — mobile only */

@@ -21,7 +21,7 @@ export interface MenuItem {
   id: string;
   name: string;
   price: number;
-  category: "food" | "drink";
+  category: string; // Category UUID
   status: "Ready" | "Habis";
   note?: string;
 }
@@ -38,6 +38,28 @@ export interface Order {
   createdAt: string;
 }
 
+export interface Discount {
+  id: string;
+  name: string;
+  type: "percent" | "fixed";
+  value: number;
+  isActive: boolean;
+  expiresAt?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  sortOrder: number;
+}
+
+export interface Modifier {
+  id: string;
+  menuItemId: string;
+  name: string;
+  priceDelta: number;
+}
+
 interface POSContextType {
   session: Session | null;
   orders: Order[];
@@ -49,6 +71,35 @@ interface POSContextType {
   addMenuItem: (item: Omit<MenuItem, "id">) => Promise<void>;
   updateMenuItemStatus: (id: string, status: "Ready" | "Habis") => Promise<void>;
   deleteMenuItem: (id: string) => Promise<void>;
+  discounts: Discount[];
+  discountsLoading: boolean;
+  addDiscount: (discount: Omit<Discount, "id">) => Promise<void>;
+  toggleDiscountActive: (id: string, isActive: boolean) => Promise<void>;
+  deleteDiscount: (id: string) => Promise<void>;
+  categories: Category[];
+  categoriesLoading: boolean;
+  modifiers: Modifier[];
+  modifiersLoading: boolean;
+  addCompleteOrder: (
+    order: {
+      discountId?: string;
+      orderType: "dine_in" | "takeaway";
+      subtotal: number;
+      discountAmount: number;
+      tax: number;
+      total: number;
+      paymentMethod: "cash" | "qris";
+      amountPaid?: number;
+      changeGiven?: number;
+    },
+    items: {
+      menuItemId: string;
+      quantity: number;
+      unitPrice: number;
+      notes?: string;
+      selectedModifiers?: Modifier[];
+    }[]
+  ) => Promise<void>;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -63,6 +114,12 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [discountsLoading, setDiscountsLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [modifiers, setModifiers] = useState<Modifier[]>([]);
+  const [modifiersLoading, setModifiersLoading] = useState(true);
 
   // ── Session ─────────────────────────────────────────────────────────────────
 
@@ -82,78 +139,188 @@ export function POSProvider({ children }: { children: ReactNode }) {
 
   const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          discount_id,
+          order_type,
+          status,
+          subtotal,
+          discount_amount,
+          tax,
+          total,
+          payment_method,
+          amount_paid,
+          change_given,
+          paid_at,
+          created_at,
+          order_items (
+            quantity,
+            notes,
+            menu_items (
+              name
+            )
+          )
+        `)
+        .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setOrders(
-        data.map((row) => ({
-          id: row.id,
-          orderNumber: row.order_number,
-          customerName: row.customer_name,
-          items: row.items,
-          notes: row.notes ?? undefined,
-          total: row.total,
-          time: row.time,
-          status: row.status as OrderStatus,
-          createdAt: row.created_at,
-        }))
-      );
+      if (!error && data) {
+        setOrders(
+          data.map((row: any) => {
+            const timeObj = new Date(row.created_at);
+            const timeStr = `${String(timeObj.getHours()).padStart(2, "0")}:${String(timeObj.getMinutes()).padStart(2, "0")}`;
+            
+            // Format order items summary string
+            const itemsSummary = (row.order_items || [])
+              .map((it: any) => `${it.quantity}x ${it.menu_items?.name || "Produk"}`)
+              .join(", ");
+
+            return {
+              id: row.id,
+              orderNumber: `TN-${row.id.slice(0, 4).toUpperCase()}`,
+              customerName: row.order_type === "dine_in" ? "Dine In" : "Takeaway",
+              items: itemsSummary || "Tanpa Item",
+              notes: undefined,
+              total: Number(row.total),
+              time: timeStr,
+              status: row.status === "open" ? "Baru" : row.status === "paid" ? "Selesai" : "Dibatalkan",
+              createdAt: row.created_at,
+            };
+          })
+        );
+      }
+    } catch (e) {
+      console.error("Error fetching orders:", e);
     }
     setOrdersLoading(false);
   }, []);
 
   const fetchMenuItems = useCallback(async () => {
     setMenuLoading(true);
-    const { data, error } = await supabase
-      .from("menu_items")
-      .select("*")
-      .order("created_at", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("*")
+        .eq("is_archived", false);
 
-    if (!error && data) {
-      setMenuItems(
-        data.map((row) => ({
-          id: row.id,
-          name: row.name,
-          price: row.price,
-          category: row.category as "food" | "drink",
-          status: row.status as "Ready" | "Habis",
-          note: row.note ?? undefined,
-        }))
-      );
+      if (!error && data) {
+        setMenuItems(
+          data.map((row) => ({
+            id: row.id,
+            name: row.name,
+            price: Number(row.price),
+            category: row.category_id || "",
+            status: row.is_available ? "Ready" : "Habis",
+            note: row.description ?? undefined,
+          }))
+        );
+      }
+    } catch (e) {
+      console.error("Error fetching menu items:", e);
     }
     setMenuLoading(false);
+  }, []);
+
+  const fetchDiscounts = useCallback(async () => {
+    setDiscountsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("discounts")
+        .select("*")
+        .order("expires_at", { ascending: true, nullsFirst: true });
+
+      if (!error && data) {
+        setDiscounts(
+          data.map((row) => ({
+            id: row.id,
+            name: row.name,
+            type: row.type as "percent" | "fixed",
+            value: Number(row.value),
+            isActive: row.is_active,
+            expiresAt: row.expires_at ?? undefined,
+          }))
+        );
+      }
+    } catch (e) {
+      console.error("Error fetching discounts:", e);
+    }
+    setDiscountsLoading(false);
+  }, []);
+
+  const fetchCategories = useCallback(async () => {
+    setCategoriesLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("sort_order", { ascending: true });
+
+      if (!error && data) {
+        setCategories(
+          data.map((row) => ({
+            id: row.id,
+            name: row.name,
+            sortOrder: row.sort_order,
+          }))
+        );
+      }
+    } catch (e) {
+      console.error("Error fetching categories:", e);
+    }
+    setCategoriesLoading(false);
+  }, []);
+
+  const fetchModifiers = useCallback(async () => {
+    setModifiersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("modifiers")
+        .select("*");
+
+      if (!error && data) {
+        setModifiers(
+          data.map((row) => ({
+            id: row.id,
+            menuItemId: row.menu_item_id,
+            name: row.name,
+            priceDelta: Number(row.price_delta),
+          }))
+        );
+      }
+    } catch (e) {
+      console.error("Error fetching modifiers:", e);
+    }
+    setModifiersLoading(false);
   }, []);
 
   useEffect(() => {
     if (session) {
       fetchOrders();
       fetchMenuItems();
+      fetchDiscounts();
+      fetchCategories();
+      fetchModifiers();
     }
-  }, [session, fetchOrders, fetchMenuItems]);
+  }, [session, fetchOrders, fetchMenuItems, fetchDiscounts, fetchCategories, fetchModifiers]);
 
   // ── Order mutations ──────────────────────────────────────────────────────────
 
   const addOrder = async (order: Pick<Order, "customerName" | "items" | "notes" | "total">) => {
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-
     const { error } = await supabase.from("orders").insert({
-      customer_name: order.customerName,
-      items: order.items,
-      notes: order.notes ?? null,
+      order_type: order.customerName.toLowerCase().includes("takeaway") ? "takeaway" : "dine_in",
+      subtotal: order.total,
       total: order.total,
-      time,
-      status: "Baru",
+      status: "open",
     });
 
     if (!error) await fetchOrders();
   };
 
   const updateOrderStatus = async (id: string, status: OrderStatus) => {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+    const dbStatus = status === "Baru" ? "open" : status === "Selesai" ? "paid" : "cancelled";
+    const { error } = await supabase.from("orders").update({ status: dbStatus }).eq("id", id);
     if (!error) {
       setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     }
@@ -165,23 +332,138 @@ export function POSProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.from("menu_items").insert({
       name: item.name,
       price: item.price,
-      category: item.category,
-      status: item.status,
-      note: item.note ?? null,
+      category_id: item.category || null,
+      is_available: item.status === "Ready",
     });
     if (!error) await fetchMenuItems();
   };
 
   const updateMenuItemStatus = async (id: string, status: "Ready" | "Habis") => {
-    const { error } = await supabase.from("menu_items").update({ status }).eq("id", id);
+    const { error } = await supabase.from("menu_items").update({ is_available: status === "Ready" }).eq("id", id);
     if (!error) {
       setMenuItems((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
     }
   };
 
   const deleteMenuItem = async (id: string) => {
-    const { error } = await supabase.from("menu_items").delete().eq("id", id);
+    const { error } = await supabase.from("menu_items").update({ is_archived: true }).eq("id", id);
     if (!error) setMenuItems((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  // ── Discount mutations ───────────────────────────────────────────────────────
+
+  const addDiscount = async (item: Omit<Discount, "id">) => {
+    const { error } = await supabase.from("discounts").insert({
+      name: item.name,
+      type: item.type,
+      value: item.value,
+      is_active: item.isActive,
+      expires_at: item.expiresAt || null,
+    });
+    if (!error) await fetchDiscounts();
+  };
+
+  const toggleDiscountActive = async (id: string, isActive: boolean) => {
+    const { error } = await supabase.from("discounts").update({ is_active: isActive }).eq("id", id);
+    if (!error) {
+      setDiscounts((prev) => prev.map((d) => (d.id === id ? { ...d, isActive } : d)));
+    }
+  };
+
+  const deleteDiscount = async (id: string) => {
+    const { error } = await supabase.from("discounts").delete().eq("id", id);
+    if (!error) setDiscounts((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  // ── Complete Order mutations ───────────────────────────────────────────────
+
+  const addCompleteOrder = async (
+    order: {
+      discountId?: string;
+      orderType: "dine_in" | "takeaway";
+      subtotal: number;
+      discountAmount: number;
+      tax: number;
+      total: number;
+      paymentMethod: "cash" | "qris";
+      amountPaid?: number;
+      changeGiven?: number;
+    },
+    items: {
+      menuItemId: string;
+      quantity: number;
+      unitPrice: number;
+      notes?: string;
+      selectedModifiers?: Modifier[];
+    }[]
+  ) => {
+    // 1. Insert order
+    const { data: orderData, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        discount_id: order.discountId || null,
+        order_type: order.orderType,
+        status: "paid",
+        subtotal: order.subtotal,
+        discount_amount: order.discountAmount,
+        tax: order.tax,
+        total: order.total,
+        payment_method: order.paymentMethod,
+        amount_paid: order.amountPaid || order.total,
+        change_given: order.changeGiven || 0,
+        paid_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (orderError || !orderData) {
+      console.error("Error inserting order:", orderError);
+      throw new Error(orderError?.message || "Failed to create order");
+    }
+
+    const orderId = orderData.id;
+
+    // 2. Insert items and modifiers
+    for (const item of items) {
+      const { data: itemData, error: itemError } = await supabase
+        .from("order_items")
+        .insert({
+          order_id: orderId,
+          menu_item_id: item.menuItemId,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          notes: item.notes || null,
+        })
+        .select()
+        .single();
+
+      if (itemError || !itemData) {
+        console.error("Error inserting order item:", itemError);
+        continue;
+      }
+
+      const orderItemId = itemData.id;
+
+      // 3. Insert modifiers
+      if (item.selectedModifiers && item.selectedModifiers.length > 0) {
+        const modifiersToInsert = item.selectedModifiers.map((mod) => ({
+          order_item_id: orderItemId,
+          modifier_id: mod.id,
+          price_delta: mod.priceDelta,
+        }));
+
+        const { error: modError } = await supabase
+          .from("order_item_modifiers")
+          .insert(modifiersToInsert);
+
+        if (modError) {
+          console.error("Error inserting order item modifiers:", modError);
+        }
+      }
+    }
+
+    // Refresh orders
+    await fetchOrders();
   };
 
   return (
@@ -197,6 +479,16 @@ export function POSProvider({ children }: { children: ReactNode }) {
         addMenuItem,
         updateMenuItemStatus,
         deleteMenuItem,
+        discounts,
+        discountsLoading,
+        addDiscount,
+        toggleDiscountActive,
+        deleteDiscount,
+        categories,
+        categoriesLoading,
+        modifiers,
+        modifiersLoading,
+        addCompleteOrder,
       }}
     >
       {children}
