@@ -11,7 +11,7 @@ const tabs = [
     label: "Beranda",
     icon: (active: boolean) => (
       <svg
-        className={`w-5 h-5 ${active ? "text-orange-500" : "text-gray-400"}`}
+        className={`w-5 h-5 ${active ? "text-primary" : "text-outline"}`}
         fill="none"
         stroke="currentColor"
         strokeWidth={active ? 2.5 : 2}
@@ -36,7 +36,7 @@ const tabs = [
     label: "Terminal",
     icon: (active: boolean) => (
       <svg
-        className={`w-5 h-5 ${active ? "text-orange-500" : "text-gray-400"}`}
+        className={`w-5 h-5 ${active ? "text-primary" : "text-outline"}`}
         fill="none"
         stroke="currentColor"
         strokeWidth={active ? 2.5 : 2}
@@ -62,7 +62,7 @@ const tabs = [
     label: "Pesanan",
     icon: (active: boolean) => (
       <svg
-        className={`w-5 h-5 ${active ? "text-orange-500" : "text-gray-400"}`}
+        className={`w-5 h-5 ${active ? "text-primary" : "text-outline"}`}
         fill="none"
         stroke="currentColor"
         strokeWidth={active ? 2.5 : 2}
@@ -88,7 +88,7 @@ const tabs = [
     label: "Menu",
     icon: (active: boolean) => (
       <svg
-        className={`w-5 h-5 ${active ? "text-orange-500" : "text-gray-400"}`}
+        className={`w-5 h-5 ${active ? "text-primary" : "text-outline"}`}
         fill="none"
         stroke="currentColor"
         strokeWidth={active ? 2.5 : 2}
@@ -113,7 +113,7 @@ const tabs = [
     label: "Diskon",
     icon: (active: boolean) => (
       <svg
-        className={`w-5 h-5 ${active ? "text-orange-500" : "text-gray-400"}`}
+        className={`w-5 h-5 ${active ? "text-primary" : "text-outline"}`}
         fill="none"
         stroke="currentColor"
         strokeWidth={active ? 2.5 : 2}
@@ -134,7 +134,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest border-t border-outline-variant flex">
       {tabs.map((tab) => {
         const isActive =
           tab.id === "pesanan"
@@ -146,7 +146,7 @@ export function BottomNav() {
             id={`nav-mobile-${tab.id}`}
             href={tab.href}
             className={`flex-1 py-3 flex flex-col items-center gap-0.5 text-xs font-medium ${
-              isActive ? "text-orange-500" : "text-gray-400"
+              isActive ? "text-primary" : "text-on-surface-variant"
             }`}
           >
             {tab.icon(isActive)}
@@ -171,11 +171,11 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-60 bg-white border-r border-gray-100 h-screen sticky top-0 flex-shrink-0 shadow-sm">
+    <aside className="hidden md:flex flex-col w-60 bg-surface-container-lowest border-r border-outline-variant h-screen sticky top-0 flex-shrink-0 shadow-ambient">
       {/* Brand */}
-      <div className="px-6 py-6 border-b border-gray-100">
+      <div className="px-6 py-6 border-b border-outline-variant">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center">
+          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -191,10 +191,10 @@ export function Sidebar() {
             </svg>
           </div>
           <div>
-            <p className="font-bold text-gray-900 text-sm leading-tight">
+            <p className="font-bold text-on-surface text-sm leading-tight">
               Toriniku Geprek
             </p>
-            <p className="text-xs text-gray-400">POS System</p>
+            <p className="text-xs text-on-surface-variant">POS System</p>
           </div>
         </div>
       </div>
@@ -213,14 +213,14 @@ export function Sidebar() {
               href={tab.href}
               className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium ${
                 isActive
-                  ? "bg-orange-50 text-orange-600"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-primary/10 text-primary"
+                  : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
               }`}
             >
               {tab.icon(isActive)}
               {tab.label}
               {isActive && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
               )}
             </Link>
           );
@@ -228,11 +228,11 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-gray-100 flex flex-col gap-2">
+      <div className="px-4 py-4 border-t border-outline-variant flex flex-col gap-2">
         <button
           id="btn-logout-sidebar"
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 cursor-pointer"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-error hover:bg-error/10 cursor-pointer"
         >
           <svg
             className="w-5 h-5"
@@ -255,7 +255,7 @@ export function Sidebar() {
           </svg>
           Keluar
         </button>
-        <p className="text-xs text-gray-400 text-center">
+        <p className="text-xs text-on-surface-variant text-center">
           v1.0.0 · Toriniku Geprek
         </p>
       </div>

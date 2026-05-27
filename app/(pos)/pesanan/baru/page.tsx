@@ -2,10 +2,17 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { usePOS, MenuItem, Modifier, Discount } from "../../../context/POSContext";
+import {
+  usePOS,
+  MenuItem,
+  Modifier,
+  Discount,
+} from "../../../context/POSContext";
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />;
+  return (
+    <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+  );
 }
 
 interface CartItem {
@@ -41,8 +48,11 @@ export default function PesananBaruPage() {
   const [amountPaid, setAmountPaid] = useState("");
 
   // Modifiers Modal State
-  const [activeItemForModifiers, setActiveItemForModifiers] = useState<MenuItem | null>(null);
-  const [tempSelectedModifiers, setTempSelectedModifiers] = useState<Modifier[]>([]);
+  const [activeItemForModifiers, setActiveItemForModifiers] =
+    useState<MenuItem | null>(null);
+  const [tempSelectedModifiers, setTempSelectedModifiers] = useState<
+    Modifier[]
+  >([]);
   const [tempNotes, setTempNotes] = useState("");
 
   // Mobile cart sheet
@@ -58,14 +68,19 @@ export default function PesananBaruPage() {
   // ── Modifiers belonging to the current menu item ──
   const currentItemModifiers = useMemo(() => {
     if (!activeItemForModifiers) return [];
-    return modifiers.filter((mod) => mod.menuItemId === activeItemForModifiers.id);
+    return modifiers.filter(
+      (mod) => mod.menuItemId === activeItemForModifiers.id,
+    );
   }, [activeItemForModifiers, modifiers]);
 
   // ── Filtered Menu Items ──
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter((item) => {
-      const matchCategory = selectedCategoryId === "all" || item.category === selectedCategoryId;
-      const matchSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchCategory =
+        selectedCategoryId === "all" || item.category === selectedCategoryId;
+      const matchSearch = item.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
       return matchCategory && matchSearch && item.status === "Ready";
     });
   }, [menuItems, selectedCategoryId, searchQuery]);
@@ -74,7 +89,8 @@ export default function PesananBaruPage() {
   const activeDiscounts = useMemo(() => {
     return discounts.filter((d) => {
       if (!d.isActive) return false;
-      if (d.expiresAt && new Date(d.expiresAt).getTime() < new Date().getTime()) return false;
+      if (d.expiresAt && new Date(d.expiresAt).getTime() < new Date().getTime())
+        return false;
       return true;
     });
   }, [discounts]);
@@ -93,17 +109,35 @@ export default function PesananBaruPage() {
     }
   };
 
-  const addToCart = (item: MenuItem, selectedMods: Modifier[], notes: string) => {
+  const addToCart = (
+    item: MenuItem,
+    selectedMods: Modifier[],
+    notes: string,
+  ) => {
     // Generate a unique ID based on item and selected modifier IDs
-    const modString = selectedMods.map((m) => m.id).sort().join("-");
+    const modString = selectedMods
+      .map((m) => m.id)
+      .sort()
+      .join("-");
     const cartId = `${item.id}-${modString}-${notes}`;
 
     setCart((prev) => {
       const existing = prev.find((i) => i.cartId === cartId);
       if (existing) {
-        return prev.map((i) => (i.cartId === cartId ? { ...i, quantity: i.quantity + 1 } : i));
+        return prev.map((i) =>
+          i.cartId === cartId ? { ...i, quantity: i.quantity + 1 } : i,
+        );
       } else {
-        return [...prev, { cartId, item, quantity: 1, selectedModifiers: selectedMods, customNotes: notes }];
+        return [
+          ...prev,
+          {
+            cartId,
+            item,
+            quantity: 1,
+            selectedModifiers: selectedMods,
+            customNotes: notes,
+          },
+        ];
       }
     });
   };
@@ -119,8 +153,10 @@ export default function PesananBaruPage() {
   const updateQuantity = (cartId: string, delta: number) => {
     setCart((prev) =>
       prev
-        .map((i) => (i.cartId === cartId ? { ...i, quantity: i.quantity + delta } : i))
-        .filter((i) => i.quantity > 0)
+        .map((i) =>
+          i.cartId === cartId ? { ...i, quantity: i.quantity + delta } : i,
+        )
+        .filter((i) => i.quantity > 0),
     );
   };
 
@@ -132,7 +168,10 @@ export default function PesananBaruPage() {
   const subtotal = useMemo(() => {
     return cart.reduce((sum, entry) => {
       const itemPrice = entry.item.price;
-      const modsPrice = entry.selectedModifiers.reduce((s, m) => s + m.priceDelta, 0);
+      const modsPrice = entry.selectedModifiers.reduce(
+        (s, m) => s + m.priceDelta,
+        0,
+      );
       return sum + (itemPrice + modsPrice) * entry.quantity;
     }, 0);
   }, [cart]);
@@ -206,7 +245,7 @@ export default function PesananBaruPage() {
       setCart([]);
       setAmountPaid("");
       setSelectedDiscountId("");
-      
+
       setTimeout(() => {
         router.push("/pesanan");
         router.refresh();
@@ -227,14 +266,15 @@ export default function PesananBaruPage() {
 
   return (
     <div className="relative flex flex-col md:flex-row min-h-dvh md:h-screen md:overflow-hidden bg-surface-container-low font-sans">
-      
       {/* ── LEFT PANEL: MENU & SELECTION ── */}
       <div className="flex-1 flex flex-col p-4 md:p-6 overflow-y-auto pb-28 md:pb-6 md:pr-[27rem] transition-all">
         <div className="flex flex-col gap-4 mb-5">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Kasir POS</h1>
-              <p className="text-gray-500 text-sm hidden md:block">Pilih menu, konfigurasi modifier</p>
+              <p className="text-gray-500 text-sm hidden md:block">
+                Pilih menu, konfigurasi modifier
+              </p>
             </div>
             <button
               onClick={() => router.push("/pesanan")}
@@ -247,8 +287,15 @@ export default function PesananBaruPage() {
           {/* Search bar */}
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="m21 21-4.3-4.3" />
+              <svg
+                className="w-4.5 h-4.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path strokeLinecap="round" d="m21 21-4.3-4.3" />
               </svg>
             </span>
             <input
@@ -266,27 +313,31 @@ export default function PesananBaruPage() {
               id="cat-tab-all"
               onClick={() => setSelectedCategoryId("all")}
               className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
-                selectedCategoryId === "all" ? "bg-orange-500 text-white shadow-md shadow-orange-100" : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
+                selectedCategoryId === "all"
+                  ? "bg-orange-500 text-white shadow-md shadow-orange-100"
+                  : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
               }`}
             >
               Semua Menu
             </button>
-            {categoriesLoading ? (
-              [1, 2].map((i) => <Skeleton key={i} className="h-8 w-20 rounded-full" />)
-            ) : (
-              categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  id={`cat-tab-${cat.id}`}
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
-                    selectedCategoryId === cat.id ? "bg-orange-500 text-white shadow-md shadow-orange-100" : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))
-            )}
+            {categoriesLoading
+              ? [1, 2].map((i) => (
+                  <Skeleton key={i} className="h-8 w-20 rounded-full" />
+                ))
+              : categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    id={`cat-tab-${cat.id}`}
+                    onClick={() => setSelectedCategoryId(cat.id)}
+                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
+                      selectedCategoryId === cat.id
+                        ? "bg-orange-500 text-white shadow-md shadow-orange-100"
+                        : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
           </div>
         </div>
 
@@ -294,19 +345,26 @@ export default function PesananBaruPage() {
         {menuLoading ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-2 animate-pulse h-36" />
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-2 animate-pulse h-36"
+              />
             ))}
           </div>
         ) : filteredMenuItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100">
             <p className="font-semibold text-gray-800">Menu tidak ditemukan</p>
-            <p className="text-sm mt-1">Coba gunakan kata kunci pencarian yang lain.</p>
+            <p className="text-sm mt-1">
+              Coba gunakan kata kunci pencarian yang lain.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMenuItems.map((item) => {
-              const hasMods = modifiers.some((mod) => mod.menuItemId === item.id);
-              
+              const hasMods = modifiers.some(
+                (mod) => mod.menuItemId === item.id,
+              );
+
               return (
                 <button
                   key={item.id}
@@ -315,16 +373,19 @@ export default function PesananBaruPage() {
                   className="bg-white rounded-2xl p-4 text-left border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all active:scale-[0.98] cursor-pointer flex flex-col justify-between h-36"
                 >
                   <div>
-                    <h3 className="font-bold text-gray-800 text-sm leading-snug line-clamp-2">{item.name}</h3>
-                    {item.note && <p className="text-gray-400 text-xxs mt-0.5 line-clamp-1">{item.note}</p>}
+                    <h3 className="font-bold text-gray-800 text-sm leading-snug line-clamp-2">
+                      {item.name}
+                    </h3>
+                    {item.note && (
+                      <p className="text-gray-400 text-xxs mt-0.5 line-clamp-1">
+                        {item.note}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mt-3 w-full">
-                    <span className="text-orange-500 font-bold text-sm">{formatRupiah(item.price)}</span>
-                    {hasMods && (
-                      <span className="bg-orange-50 text-orange-600 text-xxs font-bold px-2 py-0.5 rounded-full border border-orange-100">
-                        + Modifier
-                      </span>
-                    )}
+                    <span className="text-orange-500 font-bold text-sm">
+                      {formatRupiah(item.price)}
+                    </span>
                   </div>
                 </button>
               );
@@ -341,8 +402,12 @@ export default function PesananBaruPage() {
             className="w-full bg-primary hover:bg-primary-dark active:scale-[0.98] text-white font-bold rounded-xl px-5 py-4 flex items-center justify-between shadow-active cursor-pointer transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 rounded-lg px-2.5 py-1 text-sm font-bold">{totalItems}</div>
-              <span className="text-sm font-bold uppercase tracking-wide">Detail Pesanan</span>
+              <div className="bg-white/20 rounded-lg px-2.5 py-1 text-sm font-bold">
+                {totalItems}
+              </div>
+              <span className="text-sm font-bold uppercase tracking-wide">
+                Detail Pesanan
+              </span>
             </div>
             <span className="text-sm font-bold">{formatRupiah(total)}</span>
           </button>
@@ -372,13 +437,25 @@ export default function PesananBaruPage() {
           </div>
           {/* Sheet header */}
           <div className="px-5 py-3 flex items-center justify-between border-b border-surface-container-high flex-shrink-0">
-            <h2 className="font-bold text-on-surface text-base uppercase tracking-wide">Detail Pesanan</h2>
+            <h2 className="font-bold text-on-surface text-base uppercase tracking-wide">
+              Detail Pesanan
+            </h2>
             <button
               onClick={() => setCartOpen(false)}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container text-secondary cursor-pointer transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -415,29 +492,75 @@ export default function PesananBaruPage() {
             ) : (
               <div className="space-y-3.5">
                 {cart.map((entry) => {
-                  const totalItemPrice = entry.item.price + entry.selectedModifiers.reduce((s, m) => s + m.priceDelta, 0);
+                  const totalItemPrice =
+                    entry.item.price +
+                    entry.selectedModifiers.reduce(
+                      (s, m) => s + m.priceDelta,
+                      0,
+                    );
                   return (
-                    <div key={entry.cartId} className="flex gap-3 justify-between items-start border-b border-surface-container-high pb-3.5">
+                    <div
+                      key={entry.cartId}
+                      className="flex gap-3 justify-between items-start border-b border-surface-container-high pb-3.5"
+                    >
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-on-surface text-sm truncate">{entry.item.name}</p>
+                        <p className="font-bold text-on-surface text-sm truncate">
+                          {entry.item.name}
+                        </p>
                         {entry.selectedModifiers.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {entry.selectedModifiers.map((mod) => (
-                              <span key={mod.id} className="bg-surface-container-high text-secondary text-xxs font-medium px-2 py-0.5 rounded border border-outline-variant">
+                              <span
+                                key={mod.id}
+                                className="bg-surface-container-high text-secondary text-xxs font-medium px-2 py-0.5 rounded border border-outline-variant"
+                              >
                                 +{mod.name}
                               </span>
                             ))}
                           </div>
                         )}
-                        {entry.customNotes && <p className="text-secondary text-xxs italic mt-0.5">Catatan: {entry.customNotes}</p>}
-                        <p className="text-xs font-bold text-primary mt-1">{formatRupiah(totalItemPrice * entry.quantity)}</p>
+                        {entry.customNotes && (
+                          <p className="text-secondary text-xxs italic mt-0.5">
+                            Catatan: {entry.customNotes}
+                          </p>
+                        )}
+                        <p className="text-xs font-bold text-primary mt-1">
+                          {formatRupiah(totalItemPrice * entry.quantity)}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => updateQuantity(entry.cartId, -1)} className="w-8 h-8 border border-outline bg-surface-container-lowest text-secondary rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-surface-container transition-colors">-</button>
-                        <span className="text-xs font-bold w-4 text-center text-on-surface">{entry.quantity}</span>
-                        <button onClick={() => updateQuantity(entry.cartId, 1)} className="w-8 h-8 border border-outline bg-surface-container-lowest text-secondary rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-surface-container transition-colors">+</button>
-                        <button onClick={() => removeCartItem(entry.cartId)} className="text-secondary hover:text-error p-1 cursor-pointer transition-colors">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <button
+                          onClick={() => updateQuantity(entry.cartId, -1)}
+                          className="w-8 h-8 border border-outline bg-surface-container-lowest text-secondary rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-surface-container transition-colors"
+                        >
+                          -
+                        </button>
+                        <span className="text-xs font-bold w-4 text-center text-on-surface">
+                          {entry.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(entry.cartId, 1)}
+                          className="w-8 h-8 border border-outline bg-surface-container-lowest text-secondary rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-surface-container transition-colors"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => removeCartItem(entry.cartId)}
+                          className="text-secondary hover:text-error p-1 cursor-pointer transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -447,53 +570,153 @@ export default function PesananBaruPage() {
             )}
             {/* Discount */}
             <div>
-              <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">Kupon Diskon</label>
-              <select value={selectedDiscountId} onChange={(e) => { setSelectedDiscountId(e.target.value); setError(""); }} className="w-full px-3 py-2.5 border border-outline rounded-lg text-xs font-medium text-on-surface focus:outline-none focus:border-primary bg-surface-container-lowest cursor-pointer transition-all">
+              <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Kupon Diskon
+              </label>
+              <select
+                value={selectedDiscountId}
+                onChange={(e) => {
+                  setSelectedDiscountId(e.target.value);
+                  setError("");
+                }}
+                className="w-full px-3 py-2.5 border border-outline rounded-lg text-xs font-medium text-on-surface focus:outline-none focus:border-primary bg-surface-container-lowest cursor-pointer transition-all"
+              >
                 <option value="">-- Pilih Kupon Diskon --</option>
-                {activeDiscounts.map((d) => (<option key={d.id} value={d.id}>{d.name} ({d.type === "percent" ? `${d.value}%` : `-${formatRupiah(d.value)}`})</option>))}
+                {activeDiscounts.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} (
+                    {d.type === "percent"
+                      ? `${d.value}%`
+                      : `-${formatRupiah(d.value)}`}
+                    )
+                  </option>
+                ))}
               </select>
             </div>
             {/* Price breakdown */}
             <div className="space-y-2 border-b border-surface-container-high pb-3 text-xs text-secondary">
-              <div className="flex justify-between"><span>Subtotal</span><span className="font-semibold text-on-surface">{formatRupiah(subtotal)}</span></div>
-              {discountAmount > 0 && <div className="flex justify-between text-error font-semibold"><span>Diskon</span><span>-{formatRupiah(discountAmount)}</span></div>}
-              <div className="flex justify-between"><span>Pajak PB1 (10%)</span><span className="font-semibold text-on-surface">{formatRupiah(tax)}</span></div>
-              <div className="flex justify-between text-sm font-bold text-on-surface pt-1.5"><span>Total Akhir</span><span className="text-primary text-base font-bold">{formatRupiah(total)}</span></div>
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span className="font-semibold text-on-surface">
+                  {formatRupiah(subtotal)}
+                </span>
+              </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-error font-semibold">
+                  <span>Diskon</span>
+                  <span>-{formatRupiah(discountAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>Pajak PB1 (10%)</span>
+                <span className="font-semibold text-on-surface">
+                  {formatRupiah(tax)}
+                </span>
+              </div>
+              <div className="flex justify-between text-base font-bold text-on-surface pt-1.5">
+                <span>Total Akhir</span>
+                <span className="text-primary text-base font-bold">
+                  {formatRupiah(total)}
+                </span>
+              </div>
             </div>
             {/* Payment method */}
             <div>
-              <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">Metode Pembayaran</label>
+              <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">
+                Metode Pembayaran
+              </label>
               <div className="flex gap-2">
-                <button type="button" onClick={() => { setPaymentMethod("cash"); setAmountPaid(""); setError(""); }} className={`flex-1 py-2.5 border rounded-lg text-xs font-bold transition-all cursor-pointer ${paymentMethod === "cash" ? "border-primary bg-primary/5 text-primary" : "border-outline-variant text-secondary"}`}>💵 Tunai</button>
-                <button type="button" onClick={() => { setPaymentMethod("qris"); setAmountPaid(""); setError(""); }} className={`flex-1 py-2.5 border rounded-lg text-xs font-bold transition-all cursor-pointer ${paymentMethod === "qris" ? "border-primary bg-primary/5 text-primary" : "border-outline-variant text-secondary"}`}>📱 QRIS</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentMethod("cash");
+                    setAmountPaid("");
+                    setError("");
+                  }}
+                  className={`flex-1 py-2.5 border rounded-lg text-xs font-bold transition-all cursor-pointer ${paymentMethod === "cash" ? "border-primary bg-primary/5 text-primary" : "border-outline-variant text-secondary"}`}
+                >
+                  💵 Tunai
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentMethod("qris");
+                    setAmountPaid("");
+                    setError("");
+                  }}
+                  className={`flex-1 py-2.5 border rounded-lg text-xs font-bold transition-all cursor-pointer ${paymentMethod === "qris" ? "border-primary bg-primary/5 text-primary" : "border-outline-variant text-secondary"}`}
+                >
+                  📱 QRIS
+                </button>
               </div>
             </div>
             {/* Quick cash + amount input */}
             <div className="space-y-2 bg-surface-container-low p-3 rounded-lg border border-surface-container-high">
               <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-                <button type="button" onClick={() => handleQuickCash(total)} className="bg-surface-container-lowest px-2.5 py-1 border border-outline rounded text-xxs font-bold text-secondary hover:bg-surface-container cursor-pointer whitespace-nowrap transition-colors">Uang Pas</button>
-                {[20000, 50000, 100000].map((amt) => (<button key={amt} type="button" onClick={() => handleQuickCash(amt)} className="bg-surface-container-lowest px-2.5 py-1 border border-outline rounded text-xxs font-bold text-secondary hover:bg-surface-container cursor-pointer whitespace-nowrap transition-colors">{amt.toLocaleString("id-ID")}</button>))}
+                <button
+                  type="button"
+                  onClick={() => handleQuickCash(total)}
+                  className="bg-surface-container-lowest px-2.5 py-1 border border-outline rounded text-xxs font-bold text-secondary hover:bg-surface-container cursor-pointer whitespace-nowrap transition-colors"
+                >
+                  Uang Pas
+                </button>
+                {[20000, 50000, 100000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => handleQuickCash(amt)}
+                    className="bg-surface-container-lowest px-2.5 py-1 border border-outline rounded text-xxs font-bold text-secondary hover:bg-surface-container cursor-pointer whitespace-nowrap transition-colors"
+                  >
+                    {amt.toLocaleString("id-ID")}
+                  </button>
+                ))}
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-secondary font-bold">Bayar Rp</span>
-                <input type="text" inputMode="numeric" value={amountPaid} onChange={(e) => { const d = e.target.value.replace(/\D/g, ""); setAmountPaid(d ? parseInt(d).toLocaleString("id-ID") : ""); setError(""); }} placeholder="Masukkan nominal" className="w-full pl-18 pr-4 py-2.5 border border-outline rounded-lg text-xs font-bold text-on-surface placeholder-secondary focus:outline-none focus:border-primary bg-surface-container-lowest transition-all" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-secondary font-bold">
+                  Bayar Rp
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amountPaid}
+                  onChange={(e) => {
+                    const d = e.target.value.replace(/\D/g, "");
+                    setAmountPaid(d ? parseInt(d).toLocaleString("id-ID") : "");
+                    setError("");
+                  }}
+                  placeholder="Masukkan nominal"
+                  className="w-full pl-18 pr-4 py-2.5 border border-outline rounded-lg text-xs font-bold text-on-surface placeholder-secondary focus:outline-none focus:border-primary bg-surface-container-lowest transition-all"
+                />
               </div>
               {changeGiven > 0 && (
                 <div className="flex justify-between text-tertiary font-bold text-xs pt-1 border-t border-dashed border-outline">
-                  <span>Kembalian</span><span>{formatRupiah(changeGiven)}</span>
+                  <span>Kembalian</span>
+                  <span>{formatRupiah(changeGiven)}</span>
                 </div>
               )}
             </div>
-            {error && <p className="text-error text-xs font-semibold text-center">{error}</p>}
+            {error && (
+              <p className="text-error text-xs font-semibold text-center">
+                {error}
+              </p>
+            )}
             {/* Checkout button */}
             <button
-              onClick={() => { handleCheckout(); }}
+              onClick={() => {
+                handleCheckout();
+              }}
               disabled={isSubmitting || success || cart.length === 0}
               className={`w-full py-4 rounded-lg text-white font-bold text-sm transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 mb-2 ${
-                success ? "bg-tertiary shadow-lg" : "bg-primary hover:bg-primary-dark disabled:bg-surface-container-highest disabled:text-secondary shadow-active"
+                success
+                  ? "bg-tertiary shadow-lg"
+                  : "bg-primary hover:bg-primary-dark disabled:bg-surface-container-highest disabled:text-secondary shadow-active"
               }`}
             >
-              {isSubmitting ? "Memproses..." : success ? "✓ Transaksi Berhasil!" : "Bayar & Selesaikan"}
+              {isSubmitting
+                ? "Memproses..."
+                : success
+                  ? "✓ Transaksi Berhasil!"
+                  : "Bayar & Selesaikan"}
             </button>
             <div className="h-2" />
           </div>
@@ -502,11 +725,12 @@ export default function PesananBaruPage() {
 
       {/* ── RIGHT PANEL: DESKTOP ONLY ── */}
       <div className="hidden md:flex absolute top-4 right-4 bottom-4 w-[25rem] bg-surface-container-lowest p-5 border border-surface-container-high flex-col justify-between shadow-ambient rounded-2xl z-30 transition-all">
-        
         {/* Upper Summary Section */}
         <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
           <div className="flex items-center justify-between border-b border-surface-container-high pb-3 mb-4">
-            <h2 className="font-bold text-on-surface text-base uppercase tracking-wide">Detail Pesanan</h2>
+            <h2 className="font-bold text-on-surface text-base uppercase tracking-wide">
+              Detail Pesanan
+            </h2>
             <span className="bg-surface-container text-secondary text-xs font-bold px-2.5 py-1 rounded-lg">
               {cart.reduce((s, c) => s + c.quantity, 0)} Items
             </span>
@@ -539,36 +763,61 @@ export default function PesananBaruPage() {
           {/* Cart Items List */}
           {cart.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-10 text-secondary">
-              <svg className="w-12 h-12 mb-2 opacity-30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M8 12h8" />
+              <svg
+                className="w-12 h-12 mb-2 opacity-30"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path strokeLinecap="round" d="M8 12h8" />
               </svg>
               <p className="text-xs font-medium">Keranjang masih kosong</p>
             </div>
           ) : (
             <div className="space-y-3.5 mb-4 flex-1 overflow-y-auto pr-1">
               {cart.map((entry) => {
-                const totalItemPrice = entry.item.price + entry.selectedModifiers.reduce((s, m) => s + m.priceDelta, 0);
-                
+                const totalItemPrice =
+                  entry.item.price +
+                  entry.selectedModifiers.reduce((s, m) => s + m.priceDelta, 0);
+
                 return (
-                  <div key={entry.cartId} className="flex gap-3 justify-between items-start border-b border-surface-container-high pb-3.5">
+                  <div
+                    key={entry.cartId}
+                    className="flex gap-3 justify-between items-start border-b border-surface-container-high pb-3.5"
+                  >
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-on-surface text-sm truncate">{entry.item.name}</p>
-                      
+                      <p className="font-bold text-on-surface text-sm truncate">
+                        {entry.item.name}
+                      </p>
+
                       {/* Active Modifiers listing */}
                       {entry.selectedModifiers.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {entry.selectedModifiers.map((mod) => (
-                            <span key={mod.id} className="bg-surface-container text-secondary text-xxs font-medium px-2 py-0.5 rounded border border-outline-variant">
-                              +{mod.name} ({mod.priceDelta > 0 ? `+Rp ${mod.priceDelta.toLocaleString("id-ID")}` : "Free"})
+                            <span
+                              key={mod.id}
+                              className="bg-surface-container text-secondary text-xxs font-medium px-2 py-0.5 rounded border border-outline-variant"
+                            >
+                              +{mod.name} (
+                              {mod.priceDelta > 0
+                                ? `+Rp ${mod.priceDelta.toLocaleString("id-ID")}`
+                                : "Free"}
+                              )
                             </span>
                           ))}
                         </div>
                       )}
-                      
+
                       {entry.customNotes && (
-                        <p className="text-secondary text-xxs italic mt-0.5">Catatan: {entry.customNotes}</p>
+                        <p className="text-secondary text-xxs italic mt-0.5">
+                          Catatan: {entry.customNotes}
+                        </p>
                       )}
-                      <p className="text-xs font-bold text-primary mt-1">{formatRupiah(totalItemPrice * entry.quantity)}</p>
+                      <p className="text-xs font-bold text-primary mt-1">
+                        {formatRupiah(totalItemPrice * entry.quantity)}
+                      </p>
                     </div>
 
                     {/* Quantity & Delete controls */}
@@ -579,7 +828,9 @@ export default function PesananBaruPage() {
                       >
                         -
                       </button>
-                      <span className="text-xs font-bold w-4 text-center text-on-surface">{entry.quantity}</span>
+                      <span className="text-xs font-bold w-4 text-center text-on-surface">
+                        {entry.quantity}
+                      </span>
                       <button
                         onClick={() => updateQuantity(entry.cartId, 1)}
                         className="w-8 h-8 border border-outline bg-surface-container-lowest text-secondary rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-surface-container transition-all"
@@ -590,8 +841,18 @@ export default function PesananBaruPage() {
                         onClick={() => removeCartItem(entry.cartId)}
                         className="text-secondary hover:text-error p-1 cursor-pointer transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -604,22 +865,30 @@ export default function PesananBaruPage() {
 
         {/* Lower Checkout/Calculation Section */}
         <div className="border-t border-surface-container-high pt-4 bg-surface-container-lowest mt-auto space-y-3.5">
-          
           {/* Discounts Selector */}
           <div>
-            <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">Kupon Diskon</label>
+            <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              Kupon Diskon
+            </label>
             {discountsLoading ? (
               <Skeleton className="h-9 w-full" />
             ) : (
               <select
                 value={selectedDiscountId}
-                onChange={(e) => { setSelectedDiscountId(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setSelectedDiscountId(e.target.value);
+                  setError("");
+                }}
                 className="w-full px-3 py-2 border border-outline rounded-lg text-xs font-medium text-on-surface focus:outline-none focus:border-primary bg-surface-container-lowest cursor-pointer transition-all"
               >
                 <option value="">-- Pilih Kupon Diskon --</option>
                 {activeDiscounts.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name} ({d.type === "percent" ? `${d.value}%` : `-${formatRupiah(d.value)}`})
+                    {d.name} (
+                    {d.type === "percent"
+                      ? `${d.value}%`
+                      : `-${formatRupiah(d.value)}`}
+                    )
                   </option>
                 ))}
               </select>
@@ -630,7 +899,9 @@ export default function PesananBaruPage() {
           <div className="space-y-2 border-b border-surface-container-high pb-3 text-xs text-secondary">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="font-semibold text-on-surface">{formatRupiah(subtotal)}</span>
+              <span className="font-semibold text-on-surface">
+                {formatRupiah(subtotal)}
+              </span>
             </div>
             {discountAmount > 0 && (
               <div className="flex justify-between text-error font-semibold">
@@ -640,21 +911,31 @@ export default function PesananBaruPage() {
             )}
             <div className="flex justify-between">
               <span>Pajak Restoran PB1 (10%)</span>
-              <span className="font-semibold text-on-surface">{formatRupiah(tax)}</span>
+              <span className="font-semibold text-on-surface">
+                {formatRupiah(tax)}
+              </span>
             </div>
             <div className="flex justify-between text-sm font-bold text-on-surface pt-1.5">
               <span>Total Akhir</span>
-              <span className="text-primary text-base font-bold">{formatRupiah(total)}</span>
+              <span className="text-primary text-base font-bold">
+                {formatRupiah(total)}
+              </span>
             </div>
           </div>
 
           {/* Payment selector */}
           <div>
-            <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">Metode Pembayaran</label>
+            <label className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">
+              Metode Pembayaran
+            </label>
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => { setPaymentMethod("cash"); setAmountPaid(""); setError(""); }}
+                onClick={() => {
+                  setPaymentMethod("cash");
+                  setAmountPaid("");
+                  setError("");
+                }}
                 className={`flex-1 py-2 border rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === "cash"
                     ? "border-primary bg-primary/5 text-primary border-2"
@@ -665,7 +946,11 @@ export default function PesananBaruPage() {
               </button>
               <button
                 type="button"
-                onClick={() => { setPaymentMethod("qris"); setAmountPaid(""); setError(""); }}
+                onClick={() => {
+                  setPaymentMethod("qris");
+                  setAmountPaid("");
+                  setError("");
+                }}
                 className={`flex-1 py-2 border rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === "qris"
                     ? "border-primary bg-primary/5 text-primary border-2"
@@ -700,14 +985,18 @@ export default function PesananBaruPage() {
             </div>
 
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-secondary font-bold">Bayar Rp</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-secondary font-bold">
+                Bayar Rp
+              </span>
               <input
                 type="text"
                 inputMode="numeric"
                 value={amountPaid}
                 onChange={(e) => {
                   const digits = e.target.value.replace(/\D/g, "");
-                  setAmountPaid(digits ? parseInt(digits).toLocaleString("id-ID") : "");
+                  setAmountPaid(
+                    digits ? parseInt(digits).toLocaleString("id-ID") : "",
+                  );
                   setError("");
                 }}
                 placeholder="Masukkan nominal"
@@ -724,7 +1013,9 @@ export default function PesananBaruPage() {
           </div>
 
           {error && (
-            <p className="text-error text-xs font-semibold text-center">{error}</p>
+            <p className="text-error text-xs font-semibold text-center">
+              {error}
+            </p>
           )}
 
           {/* Checkout Submit */}
@@ -734,14 +1025,29 @@ export default function PesananBaruPage() {
             className={`w-full py-3.5 rounded-lg text-white font-bold text-sm transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 ${
               success
                 ? "bg-tertiary shadow-lg"
-                : "bg-primary hover:bg-primary-dark disabled:bg-surface-container-highest disabled:text-secondary shadow-active"
+                : "bg-primary hover:bg-primary-dark disabled:bg-surface-container-highest disabled:text-secondary"
             }`}
           >
             {isSubmitting ? (
               <>
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                <svg
+                  className="w-5 h-5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth={4}
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
                 </svg>
                 Memproses Order...
               </>
@@ -764,52 +1070,90 @@ export default function PesananBaruPage() {
           />
 
           {/* Dialog — bottom sheet on mobile, centered card on md+ */}
-          <div className="relative bg-surface-container-lowest rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-md z-10 p-5 md:p-6 flex flex-col animate-scale-up" style={{ maxHeight: "90dvh" }}>
+          <div
+            className="relative bg-surface-container-lowest rounded-t-3xl md:rounded-2xl shadow-2xl w-full md:max-w-md z-10 p-5 md:p-6 flex flex-col animate-scale-up"
+            style={{ maxHeight: "90dvh" }}
+          >
             <div>
               <div className="flex justify-between items-start border-b border-surface-container-high pb-3 mb-4">
                 <div>
-                  <h3 className="text-base font-bold text-on-surface uppercase tracking-wide">Opsi Tambahan Menu</h3>
-                  <p className="text-primary font-bold text-sm mt-0.5">{activeItemForModifiers.name}</p>
+                  <h3 className="text-base font-bold text-on-surface uppercase tracking-wide">
+                    Opsi Tambahan Menu
+                  </h3>
+                  <p className="text-primary font-bold text-sm mt-0.5">
+                    {activeItemForModifiers.name}
+                  </p>
                 </div>
                 <button
                   onClick={() => setActiveItemForModifiers(null)}
                   className="w-8 h-8 rounded-full hover:bg-surface-container flex items-center justify-center text-secondary hover:text-on-surface cursor-pointer transition-colors"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
 
               {/* Modifiers List checkboxes */}
-              <div className="space-y-2 overflow-y-auto pr-1" style={{ maxHeight: "40dvh" }}>
+              <div
+                className="space-y-2 overflow-y-auto pr-1"
+                style={{ maxHeight: "40dvh" }}
+              >
                 {currentItemModifiers.length === 0 ? (
-                  <p className="text-secondary text-xs text-center py-4">Tidak ada opsi tambahan untuk menu ini.</p>
+                  <p className="text-secondary text-xs text-center py-4">
+                    Tidak ada opsi tambahan untuk menu ini.
+                  </p>
                 ) : (
                   currentItemModifiers.map((mod) => {
-                    const isChecked = tempSelectedModifiers.some((m) => m.id === mod.id);
-                    
+                    const isChecked = tempSelectedModifiers.some(
+                      (m) => m.id === mod.id,
+                    );
+
                     return (
                       <button
                         type="button"
                         key={mod.id}
                         onClick={() => {
                           if (isChecked) {
-                            setTempSelectedModifiers((prev) => prev.filter((m) => m.id !== mod.id));
+                            setTempSelectedModifiers((prev) =>
+                              prev.filter((m) => m.id !== mod.id),
+                            );
                           } else {
                             setTempSelectedModifiers((prev) => [...prev, mod]);
                           }
                         }}
                         className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg text-left cursor-pointer transition-all ${
-                          isChecked ? "border-primary bg-primary/5 text-primary font-semibold" : "border-outline-variant text-secondary hover:bg-surface-container-low"
+                          isChecked
+                            ? "border-primary bg-primary/5 text-primary font-semibold"
+                            : "border-outline-variant text-secondary hover:bg-surface-container-low"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded border flex items-center justify-center ${
-                            isChecked ? "bg-primary border-primary" : "border-outline bg-surface-container-lowest"
-                          }`}>
+                          <div
+                            className={`w-4 h-4 rounded border flex items-center justify-center ${
+                              isChecked
+                                ? "bg-primary border-primary"
+                                : "border-outline bg-surface-container-lowest"
+                            }`}
+                          >
                             {isChecked && (
-                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                              <svg
+                                className="w-2.5 h-2.5 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={3}
+                                viewBox="0 0 24 24"
+                              >
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
@@ -817,7 +1161,9 @@ export default function PesananBaruPage() {
                           <span className="text-xs">{mod.name}</span>
                         </div>
                         {mod.priceDelta > 0 && (
-                          <span className="text-xs font-bold">+{formatRupiah(mod.priceDelta)}</span>
+                          <span className="text-xs font-bold">
+                            +{formatRupiah(mod.priceDelta)}
+                          </span>
                         )}
                       </button>
                     );
@@ -827,7 +1173,12 @@ export default function PesananBaruPage() {
 
               {/* Custom Notes */}
               <div className="mt-4">
-                <label htmlFor="modal-notes" className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5">Catatan Tambahan</label>
+                <label
+                  htmlFor="modal-notes"
+                  className="block text-xxs font-bold text-secondary uppercase tracking-wider mb-1.5"
+                >
+                  Catatan Tambahan
+                </label>
                 <input
                   id="modal-notes"
                   type="text"
@@ -863,8 +1214,14 @@ export default function PesananBaruPage() {
       {/* ── Zoom scale animations ── */}
       <style jsx global>{`
         @keyframes scaleUp {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
+          from {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
         }
         .animate-scale-up {
           animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;

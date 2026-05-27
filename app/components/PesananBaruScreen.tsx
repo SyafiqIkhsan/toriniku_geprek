@@ -48,8 +48,8 @@ export default function PesananBaruScreen() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Header */}
-      <div className="bg-orange-500 px-5 md:px-8 pt-8 pb-6 relative overflow-hidden">
-        <div className="absolute -top-8 -right-8 w-32 h-32 bg-orange-400 rounded-full opacity-40" />
+      <div className="bg-primary px-5 md:px-8 pt-8 pb-6 relative overflow-hidden">
+        <div className="absolute -top-8 -right-8 w-32 h-32 bg-primary-container rounded-full opacity-40" />
         <div className="relative z-10 flex items-center gap-3">
           <button
             id="btn-back-pesanan-baru"
@@ -75,9 +75,9 @@ export default function PesananBaruScreen() {
       </div>
 
       {/* Form */}
-      <div className="flex-1 px-4 md:px-8 py-5 pb-24 md:pb-8 bg-gray-50">
-        <div className="bg-white rounded-2xl p-5 shadow-sm max-w-full">
-          <h2 className="text-base font-bold text-gray-800 mb-4">
+      <div className="flex-1 px-4 md:px-8 py-5 pb-24 md:pb-8 bg-background">
+        <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-ambient max-w-full">
+          <h2 className="text-base font-bold text-on-surface mb-4">
             Detail Pesanan Pelanggan
           </h2>
 
@@ -85,14 +85,14 @@ export default function PesananBaruScreen() {
           <div className="mb-4">
             <label
               htmlFor="input-customer-name"
-              className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide"
+              className="block text-xs font-semibold text-on-surface-variant mb-2 uppercase tracking-wide"
             >
               Nama Pelanggan / Nomor Meja
             </label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2">
                 <svg
-                  className="w-4 h-4 text-orange-400"
+                  className="w-4 h-4 text-primary"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -115,7 +115,7 @@ export default function PesananBaruScreen() {
                   setError("");
                 }}
                 placeholder="Contoh: Meja 05 atau Andi"
-                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                className="w-full pl-9 pr-4 py-3 border border-outline rounded-xl text-sm text-on-surface placeholder-secondary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface-container-lowest transition-all"
               />
             </div>
           </div>
@@ -124,14 +124,14 @@ export default function PesananBaruScreen() {
           <div className="mb-4">
             <label
               htmlFor="input-items"
-              className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide"
+              className="block text-xs font-semibold text-on-surface-variant mb-2 uppercase tracking-wide"
             >
               Menu yang Dipesan
             </label>
             <div className="relative">
               <div className="absolute left-3 top-3">
                 <svg
-                  className="w-4 h-4 text-orange-400"
+                  className="w-4 h-4 text-primary"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -153,7 +153,7 @@ export default function PesananBaruScreen() {
                   setError("");
                 }}
                 placeholder="Contoh: 2x Ayam Geprek S2, 1x Es Teh"
-                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 resize-none"
+                className="w-full pl-9 pr-4 py-3 border border-outline rounded-xl text-sm text-on-surface placeholder-secondary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface-container-lowest transition-all resize-none"
               />
             </div>
           </div>
@@ -162,12 +162,12 @@ export default function PesananBaruScreen() {
           <div className="mb-4">
             <label
               htmlFor="input-total"
-              className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide"
+              className="block text-xs font-semibold text-on-surface-variant mb-2 uppercase tracking-wide"
             >
               Total Harga (Rp)
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-outline font-medium">
                 Rp
               </span>
               <input
@@ -177,7 +177,7 @@ export default function PesananBaruScreen() {
                 value={total}
                 onChange={(e) => setTotal(formatPrice(e.target.value))}
                 placeholder="Contoh: 50.000"
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+                className="w-full pl-10 pr-4 py-3 border border-outline rounded-xl text-sm text-on-surface placeholder-secondary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface-container-lowest transition-all"
               />
             </div>
           </div>
@@ -186,14 +186,14 @@ export default function PesananBaruScreen() {
           <div className="mb-4">
             <label
               htmlFor="input-order-notes"
-              className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide"
+              className="block text-xs font-semibold text-on-surface-variant mb-2 uppercase tracking-wide"
             >
               Catatan Tambahan
             </label>
             <div className="relative">
               <div className="absolute left-3 top-3">
                 <svg
-                  className="w-4 h-4 text-orange-400"
+                  className="w-4 h-4 text-primary"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -217,23 +217,23 @@ export default function PesananBaruScreen() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Contoh: Sambal dipisah, es teh manis"
-                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 resize-none"
+                className="w-full pl-9 pr-4 py-3 border border-outline rounded-xl text-sm text-on-surface placeholder-secondary focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-surface-container-lowest transition-all resize-none"
               />
             </div>
           </div>
 
           {error && (
-            <p className="text-red-500 text-xs mb-3 font-medium">{error}</p>
+            <p className="text-error text-xs mb-3 font-semibold">{error}</p>
           )}
 
           <button
             id="btn-simpan-pesanan"
             onClick={handleSave}
             disabled={success}
-            className={`w-full py-3.5 rounded-2xl text-white font-bold text-sm active:scale-[0.98] cursor-pointer ${
+            className={`w-full py-3.5 rounded-2xl text-white font-bold text-sm active:scale-[0.98] cursor-pointer transition-all ${
               success
-                ? "bg-green-500"
-                : "bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-200"
+                ? "bg-tertiary shadow-active"
+                : "bg-primary hover:bg-primary-dark shadow-active"
             }`}
           >
             {success ? "✓ Order Tersimpan!" : "Simpan & Proses Order"}
